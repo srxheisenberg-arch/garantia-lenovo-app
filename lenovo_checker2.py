@@ -8,6 +8,8 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.common.exceptions import TimeoutException, NoSuchElementException
 
+from selenium.webdriver.chrome.service import Service as ChromeService
+
 def get_element_text_or_none(driver, by, value):
     try:
         return driver.find_element(by, value).text
@@ -26,29 +28,32 @@ def check_lenovo_serial(serial_number):
     """
     options = webdriver.ChromeOptions()
     
-    # Solo usar modo headless si estamos en Render (o si la variable de entorno está definida)
-    if os.environ.get('RUNNING_IN_RENDER'):
-        options.add_argument('--headless')
-        options.add_argument('--no-sandbox') # Necesario para entornos como Render
-    
     # Disfrazar el navegador headless
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36")
     options.add_argument("--window-size=1920,1080")
-
     options.add_argument('--disable-gpu')
     options.add_argument('--log-level=3')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     
-    # En Render, los buildpacks establecen esta variable de entorno para apuntar al binario de Chrome.
-    chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
-    if chrome_bin:
-        options.binary_location = chrome_bin
-    
     driver = None
     try:
-        # Selenium 4 y superior puede gestionar el chromedriver automáticamente
-        # si puede encontrar el binario del navegador (lo cual hacemos con options.binary_location).
-        driver = webdriver.Chrome(options=options)
+        # Configuración específica para Render
+        if os.environ.get('RUNNING_IN_RENDER'):
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            
+            chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
+            chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+
+            if not chrome_bin or not chromedriver_path:
+                return json.dumps({"error": "CONFIG_ERROR", "mensaje": "Las variables de entorno GOOGLE_CHROME_BIN o CHROMEDRIVER_PATH no están configuradas en Render."}, indent=4)
+
+            options.binary_location = chrome_bin
+            service = ChromeService(executable_path=chromedriver_path)
+            driver = webdriver.Chrome(service=service, options=options)
+        else:
+            # Configuración para ejecución local (Selenium gestiona el driver)
+            driver = webdriver.Chrome(options=options)
 
         driver.get("https://pcsupport.lenovo.com/cl/es/warranty-lookup#/")
         
