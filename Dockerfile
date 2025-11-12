@@ -1,28 +1,20 @@
 # Use an official Python runtime as a parent image
-FROM python:3.11-slim
+FROM python:3.11-slim-buster
 
 # Set environment variables for Chrome and ChromeDriver
-ENV CHROME_VERSION "121.0.6167.85-1"
-ENV CHROMEDRIVER_VERSION "121.0.6167.85"
 ENV DEBIAN_FRONTEND=noninteractive
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    libffi-dev \
+    chromium-browser \
+    chromium-chromedriver \
     wget \
     unzip \
-    --no-install-recommends
-
-# Install Google Chrome
-RUN wget -q https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}_amd64.deb \
-    && apt-get install -y ./google-chrome-stable_${CHROME_VERSION}_amd64.deb \
-    && rm google-chrome-stable_${CHROME_VERSION}_amd64.deb
-
-# Install ChromeDriver
-RUN wget -q https://storage.googleapis.com/chrome-for-testing-public/${CHROMEDRIVER_VERSION}/linux64/chromedriver-linux64.zip \
-    && unzip chromedriver-linux64.zip \
-    && mv chromedriver-linux64/chromedriver /usr/bin/chromedriver \
-    && rm chromedriver-linux64.zip \
-    && rm -rf chromedriver-linux64
+    --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set display port to avoid crash
 ENV DISPLAY=:99
