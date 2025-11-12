@@ -44,14 +44,12 @@ def check_lenovo_serial(serial_number):
             options.add_argument('--disable-dev-shm-usage')
             
             chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
-            chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
-
-            if not chrome_bin or not chromedriver_path:
-                return json.dumps({"error": "CONFIG_ERROR", "mensaje": "Las variables de entorno GOOGLE_CHROME_BIN o CHROMEDRIVER_PATH no están configuradas en Render."}, indent=4)
+            if not chrome_bin:
+                return json.dumps({"error": "CONFIG_ERROR", "mensaje": "La variable de entorno GOOGLE_CHROME_BIN no está configurada en Render."}, indent=4)
 
             options.binary_location = chrome_bin
-            service = ChromeService(executable_path=chromedriver_path)
-            driver = webdriver.Chrome(service=service, options=options)
+            # Dejar que Selenium Manager se encargue del driver
+            driver = webdriver.Chrome(options=options)
         else:
             # Configuración para ejecución local (Selenium gestiona el driver)
             driver = webdriver.Chrome(options=options)
