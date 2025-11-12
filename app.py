@@ -1,5 +1,5 @@
 from flask import Flask, request, render_template_string, jsonify
-from lenovo_checker import check_lenovo_serial
+from lenovo_checker2 import check_lenovo_serial
 import json
 
 app = Flask(__name__)
