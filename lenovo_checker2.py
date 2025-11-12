@@ -25,9 +25,13 @@ def check_lenovo_serial(serial_number):
         str: Un JSON con la información del producto o un mensaje de error.
     """
     options = webdriver.ChromeOptions()
-    options.add_argument('--headless') # Activado para Render
+    
+    # Solo usar modo headless si estamos en Render (o si la variable de entorno está definida)
+    if os.environ.get('RUNNING_IN_RENDER'):
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox') # Necesario para entornos como Render
+    
     options.add_argument('--disable-gpu')
-    options.add_argument('--no-sandbox') # Necesario para entornos como Render
     options.add_argument('--log-level=3')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     
@@ -42,13 +46,10 @@ def check_lenovo_serial(serial_number):
         # si puede encontrar el binario del navegador (lo cual hacemos con options.binary_location).
         driver = webdriver.Chrome(options=options)
 
-        # No minimizar la ventana en modo headless
-        # driver.minimize_window() 
-
         driver.get("https://pcsupport.lenovo.com/cl/es/warranty-lookup#/")
         
         time.sleep(3)
-        wait = WebDriverWait(driver, 20)
+        wait = WebDriverWait(driver, 30) # Aumentado a 30 segundos
 
         try:
             cookie_button = wait.until(EC.element_to_be_clickable((By.ID, "cookie-banner-ok-button")))
