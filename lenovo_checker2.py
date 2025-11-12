@@ -41,6 +41,7 @@ def check_lenovo_serial(serial_number):
         if os.environ.get('RENDER'):
             options.add_argument('--headless')
             options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
             
             chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
             chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')

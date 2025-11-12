@@ -1,7 +1,6 @@
 from flask import Flask, request, render_template_string, jsonify
 from lenovo_checker2 import check_lenovo_serial
 import json
-import os
 
 app = Flask(__name__)
 
@@ -69,11 +68,6 @@ def consultar_api():
     result_json_str = check_lenovo_serial(serial_number)
     result_data = json.loads(result_json_str)
     return jsonify(result_data)
-
-@app.route('/debug-env')
-def debug_env():
-    env_vars = {key: value for key, value in os.environ.items()}
-    return jsonify(env_vars)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
