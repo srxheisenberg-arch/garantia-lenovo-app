@@ -3,7 +3,7 @@ services:
     name: garantia-lenovo-app
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "gunicorn app:app"
+    startCommand: "gunicorn --timeout 120 app:app"
     buildPacks:
       - url: https://github.com/heroku/heroku-buildpack-google-chrome
       - url: https://github.com/heroku/heroku-buildpack-chromedriver
