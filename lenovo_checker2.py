@@ -66,6 +66,13 @@ def check_lenovo_serial(serial_number):
         except TimeoutException:
             pass
 
+        # Localizar el campo de entrada, ingresar la serie y hacer clic en buscar
+        input_field = wait.until(EC.presence_of_element_located((By.ID, "warranty_search_input")))
+        input_field.send_keys(serial_number)
+
+        submit_button = wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "search_btn")))
+        submit_button.click()
+
         # Esperar a que la página de resultados cargue o redirija
         # La página redirige a una URL específica del producto, donde la información de garantía
         # está incrustada en un objeto JavaScript llamado 'ds_warranties'.
