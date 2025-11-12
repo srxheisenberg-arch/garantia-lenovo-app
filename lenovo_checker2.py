@@ -61,32 +61,53 @@ def check_lenovo_serial(serial_number):
         except TimeoutException:
             pass
 
-        serial_input = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "button-placeholder__input")))
-        serial_input.send_keys(serial_number)
+        # Esperar a que la página de resultados cargue o redirija
+        # La página redirige a una URL específica del producto, donde la información de garantía
+        # está incrustada en un objeto JavaScript llamado 'ds_warranties'.
+        wait.until(EC.url_contains("products"))
+        time.sleep(5) # Dar tiempo extra para que el JS se ejecute y el objeto esté disponible
+
+        # Extraer el objeto JavaScript 'ds_warranties' directamente
+        ds_warranties_json = driver.execute_script("return JSON.stringify(window.ds_warranties);")
         
-        submit_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'ENVIAR')]")))
-        submit_button.click()
+        if not ds_warranties_json:
+            return json.dumps({"error": "INVALIDO", "mensaje": "No se encontró el objeto ds_warranties en la página."}, indent=4)
 
-        wait.until(EC.presence_of_element_located((By.CLASS_NAME, "prod-name")))
-        time.sleep(2)
+        ds_warranties_data = json.loads(ds_warranties_json)
 
-        product_name = get_element_text_or_none(driver, By.XPATH, '//div[@class="prod-name"]/h4')
-        warranty_status = get_element_text_or_none(driver, By.XPATH, '//span[@class="warranty-status-right"]')
-        start_date = get_element_text_or_none(driver, By.XPATH, '//div[contains(@class, "detail-property")]/span[contains(text(), "Fecha de inicio")]/following-sibling::span')
-        end_date = get_element_text_or_none(driver, By.XPATH, '//div[contains(@class, "detail-property")]/span[contains(text(), "Fecha fin")]/following-sibling::span')
-        status = get_element_text_or_none(driver, By.XPATH, '//div[contains(@class, "detail-property")]/span[contains(text(), "Estado")]/following-sibling::span')
-        warranty_type = get_element_text_or_none(driver, By.XPATH, '//div[contains(@class, "detail-property")]/span[contains(text(), "Tipo")]/following-sibling::span')
-
-        if not product_name:
+        # Verificar si hay información de garantía válida
+        if not ds_warranties_data or not ds_warranties_data.get("BaseWarranties"):
+            # Intentar buscar un mensaje de error si no hay garantías base
             error_message = get_element_text_or_none(driver, By.XPATH, '//*[contains(text(), "No se encontraron productos")]')
             if error_message:
                 return json.dumps({"error": "INVALIDO", "mensaje": error_message}, indent=4)
             else:
-                return json.dumps({"error": "INVALIDO", "mensaje": "Número de serie no encontrado, pero no se mostró un mensaje de error claro."}, indent=4)
+                return json.dumps({"error": "INVALIDO", "mensaje": "Número de serie no encontrado o sin información de garantía."}, indent=4)
+
+        # Extraer los datos relevantes
+        product_name = ds_warranties_data.get("ProductName", "N/A")
+        
+        # El estado general de la garantía puede venir de ds_warranties.StatusV2 o de ds_warranties.BaseUpmaWarranties[0].StatusV2
+        # O podemos inferirlo de la primera garantía base
+        warranty_status_general = "N/A"
+        if ds_warranties_data.get("BaseWarranties"):
+            first_warranty = ds_warranties_data["BaseWarranties"][0]
+            warranty_status_general = first_warranty.get("StatusV2", "N/A")
+            
+            # Detalles de la primera garantía base
+            start_date = first_warranty.get("Start", "N/A")
+            end_date = first_warranty.get("End", "N/A")
+            status = first_warranty.get("StatusV2", "N/A")
+            warranty_type = first_warranty.get("Name", "N/A")
+        else:
+            start_date = "N/A"
+            end_date = "N/A"
+            status = "N/A"
+            warranty_type = "N/A"
 
         data = {
             "modelo": product_name,
-            "estado_garantia_general": warranty_status,
+            "estado_garantia_general": warranty_status_general,
             "detalles_garantia": {
                 "fecha_inicio": start_date,
                 "fecha_fin": end_date,
