@@ -31,21 +31,16 @@ def check_lenovo_serial(serial_number):
     options.add_argument('--log-level=3')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     
-    # Configurar la ruta del binario de Chrome y ChromeDriver para Render
+    # En Render, los buildpacks establecen esta variable de entorno para apuntar al binario de Chrome.
     chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
-    chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
-
     if chrome_bin:
         options.binary_location = chrome_bin
     
-    service = None
     driver = None
     try:
-        if chromedriver_path:
-            service = webdriver.ChromeService(executable_path=chromedriver_path)
-            driver = webdriver.Chrome(service=service, options=options)
-        else:
-            driver = webdriver.Chrome(options=options)
+        # Selenium 4 y superior puede gestionar el chromedriver automáticamente
+        # si puede encontrar el binario del navegador (lo cual hacemos con options.binary_location).
+        driver = webdriver.Chrome(options=options)
 
         # No minimizar la ventana en modo headless
         # driver.minimize_window() 
