@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: garantia-lenovo-app
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.12 # Asegúrate de que esta versión sea compatible con tus dependencias
+    buildPacks:
+      - url: https://github.com/heroku/heroku-buildpack-google-chrome
+      - url: https://github.com/heroku/heroku-buildpack-chromedriver
+      - url: https://github.com/render-examples/python-poetry-example

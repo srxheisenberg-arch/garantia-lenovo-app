@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import json
@@ -24,16 +25,30 @@ def check_lenovo_serial(serial_number):
         str: Un JSON con la información del producto o un mensaje de error.
     """
     options = webdriver.ChromeOptions()
-    # options.add_argument('--headless') # Desactivado
+    options.add_argument('--headless') # Activado para Render
     options.add_argument('--disable-gpu')
+    options.add_argument('--no-sandbox') # Necesario para entornos como Render
     options.add_argument('--log-level=3')
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
     
+    # Configurar la ruta del binario de Chrome y ChromeDriver para Render
+    chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
+    chromedriver_path = os.environ.get('CHROMEDRIVER_PATH')
+
+    if chrome_bin:
+        options.binary_location = chrome_bin
+    
+    service = None
     driver = None
     try:
-        driver = webdriver.Chrome(options=options)
-        # Minimizar la ventana
-        driver.minimize_window()
+        if chromedriver_path:
+            service = webdriver.ChromeService(executable_path=chromedriver_path)
+            driver = webdriver.Chrome(service=service, options=options)
+        else:
+            driver = webdriver.Chrome(options=options)
+
+        # No minimizar la ventana en modo headless
+        # driver.minimize_window() 
 
         driver.get("https://pcsupport.lenovo.com/cl/es/warranty-lookup#/")
         
