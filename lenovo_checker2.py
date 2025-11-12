@@ -38,7 +38,7 @@ def check_lenovo_serial(serial_number):
     driver = None
     try:
         # Configuración específica para Render
-        if os.environ.get('RUNNING_IN_RENDER'):
+        if os.environ.get('RENDER'):
             options.add_argument('--headless')
             options.add_argument('--no-sandbox')
             
