@@ -37,22 +37,14 @@ def check_lenovo_serial(serial_number):
     
     driver = None
     try:
-        # Configuración específica para Render
-        if os.environ.get('RENDER'):
-            options.add_argument('--headless')
-            options.add_argument('--no-sandbox')
-            options.add_argument('--disable-dev-shm-usage')
-            
-            chrome_bin = os.environ.get('GOOGLE_CHROME_BIN')
-            if not chrome_bin:
-                return json.dumps({"error": "CONFIG_ERROR", "mensaje": "La variable de entorno GOOGLE_CHROME_BIN no está configurada en Render."}, indent=4)
+        # Configuración para el entorno Docker
+        options.add_argument('--headless')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
+        options.binary_location = "/usr/bin/google-chrome"
 
-            options.binary_location = chrome_bin
-            # Dejar que Selenium Manager se encargue del driver
-            driver = webdriver.Chrome(options=options)
-        else:
-            # Configuración para ejecución local (Selenium gestiona el driver)
-            driver = webdriver.Chrome(options=options)
+        service = ChromeService(executable_path="/usr/bin/chromedriver")
+        driver = webdriver.Chrome(service=service, options=options)
 
         driver.get("https://pcsupport.lenovo.com/cl/es/warranty-lookup#/")
         

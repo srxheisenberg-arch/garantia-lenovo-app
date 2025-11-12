@@ -1,4 +1,5 @@
-Flask
-requests
-gunicorn
-selenium
+Flask==3.0.3
+requests==2.31.0
+gunicorn==22.0.0
+selenium==4.17.2
+gevent==24.2.1
